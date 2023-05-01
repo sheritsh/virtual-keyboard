@@ -30,10 +30,6 @@ class KeyboardRender {
   }
 }
 
-const newKeyBoard = new KeyboardRender();
-
-alert('Здравствуй!\nПожалуйста проверь мою работу позже, я прямо сейчас ее активно доделываю\n\
-Я очень сильно извиняюсь и надеюсь на понимание\nПросто очень большая загруженность\n\
-Если что отвечу в discord или телеграмме @rockstarhelge');
+let newKeyBoard = new KeyboardRender();
 
 export default newKeyBoard;
