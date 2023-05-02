@@ -4,6 +4,7 @@ module.exports = {
     es2021: true,
   },
   extends: 'airbnb-base',
+  plugins: 'prettier',
   overrides: [
   ],
   parserOptions: {
