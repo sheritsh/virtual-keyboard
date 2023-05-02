@@ -1,6 +1,7 @@
 /* created by sheritsh // Oleg Polovinko ※ School 21, Kzn */
 
 import keysEn from "./en_layout.js";
+import specialBtns from "./key_sets.js";
 import keysRu from "./ru_layout.js";
 
 class KeyboardRender {
@@ -14,6 +15,7 @@ class KeyboardRender {
     this.textarea = document.createElement('textarea');
     this.textarea.rows = '5';
     this.textarea.setAttribute('placeholder', 'Please input your text...');
+    // this.textarea.setAttribute('readonly', 'readonly');
     this.textarea.classList.add('textarea');
     this.keyboard = document.createElement('div');
     this.keyboard.classList.add('keyboard');
@@ -31,6 +33,10 @@ class KeyboardRender {
     this.content.append(this.keyboard);
     this.content.append(this.description);
     this.content.append(this.footer);
+
+    // keys statuses
+    this.shiftStatus = false;
+    this.optionStatus = false;
 
     // Render content wrapper in html body
     document.body.prepend(this.content);
@@ -62,20 +68,181 @@ class KeyboardRender {
     }
   }
 
-  highlightKey(event) {
-    console.log(event.key);
-    const btnsCollection = document.querySelectorAll('keyBtn');
-    const currentButton = event.target.closest('.keyBtn');
-    if (currentButton && event.type !== 'click') {
-      console.log(event.key);
+ eventHandler(event) {
+
+  event.preventDefault();
+    const btnsCollection = document.querySelectorAll('.keyBtn');
+    const currentBtn = event.target.closest('.keyBtn');
+
+    let side = 'left';
+    const sideDependent = ['Shift', 'Ctrl', 'Option', 'Cmd'];
+
+
+    
+    let curBtn = event.key;
+    if (specialBtns.includes(event.key)) {
+      curBtn = getSpecialBtn(event);
     }
-  }
+
+    if (sideDependent.includes(curBtn)) {
+      side = checkBtnSide(event);
+    }
+
+
+
+    if (event.type === 'click') {
+      // console.log(event.target.closest('.keyBtn'));
+    } else if (event.type === 'keydown') {
+      // console.log("Pressed " +event.code);
+      keyboard.textarea.value += curBtn;
+      keyboard.textarea.selectionStart = this.textarea.value.length;
+      handleKeydown(curBtn, btnsCollection, side);
+      // event.target.closest('.button').classList.add("btn-active");
+    } else if (event.type === 'keyup') {
+      // console.log("Unpressed " + event.key);
+      handleKeyup(curBtn, btnsCollection, side);
+    }
+
+    if (event.type === 'click' || event.type === 'keydown') {
+      if (!event.repeat) {
+        soundPlay();
+      }
+
+    }
+ }
 }
 
 const keyboard = new KeyboardRender();
 keyboard.getKeyboard();
 
-window.addEventListener('keydown', (event) => {
-  // newKeyBoard.textareaFocus();
-  keyboard.highlightKey(event);
+keyboard.keyboard.addEventListener('click', (event) => {
+  keyboard.eventHandler(event);
 });
+
+document.addEventListener('keydown', (event) => {
+  keyboard.eventHandler(event);
+});
+
+document.addEventListener('keyup', (event) => {
+  keyboard.eventHandler(event);
+});
+
+function handleKeydown(curBtn, btnsCollection, side) {
+  // console.log(event.code);
+  // console.log(event.key);
+
+  // if (sideDependent.includes(curBtn)) {
+
+  // }
+  
+  if (curBtn === 'Shift') {
+
+      keyboard.shiftStatus = true;
+      
+  } else if (curBtn === 'Option') {
+    keyboard.optionStatus = true;
+  }
+  switchLang();
+
+  let sideNumber = side === 'left' ? 1 : 2;
+  console.log(sideNumber);
+  /* eslint-disable-next-line */
+  for (const elem of btnsCollection) {
+    if (elem.textContent === curBtn) {
+      if (sideNumber === 1) {
+        elem.classList.add('btn-active');
+        break;
+      }
+      if (sideNumber === 2) {
+        sideNumber = 1;
+      }
+    }
+    // console.log("Match");
+  }
+}
+
+
+function handleKeyup(curBtn, btnsCollection, side) {
+  if (curBtn === 'Shift') {
+    // document.querySelector('.keyboard').innerHTML = '';
+    // keyboard.getKeyboard();
+    keyboard.shiftStatus = false;
+} else if (curBtn === 'Option') {
+  keyboard.optionStatus = false;
+}
+  
+  for (let elem of btnsCollection) {
+    if (elem.textContent == curBtn) {
+      elem.classList.remove('btn-active');
+    }
+  }
+}
+
+function soundPlay() {
+  const clickSound = new Audio();
+        clickSound.preload = 'auto';
+        clickSound.src = 'assets/sounds/btn_click_sound.mp3';
+        clickSound.play();
+}
+
+// function whichBtn(event) {
+//   if event.key
+// }
+
+function getSpecialBtn(event) {
+  let resBtn = '';
+
+  if (event.key === 'Tab') {
+    resBtn = 'Tab';
+  } else if (event.key === 'CapsLock') {
+    resBtn = 'CapsLock';
+  } else if (event.key === 'Shift') {
+    resBtn = 'Shift';
+  } else if (event.key === 'Control') {
+    resBtn = 'Ctrl';
+  } else if (event.key === 'Alt') {
+    resBtn = 'Option';
+  } else if (event.key === 'Meta') {
+    resBtn = 'Cmd';
+  } else if (event.key === 'ArrowUp') {
+    resBtn = '▴';
+  } else if (event.key === 'ArrowLeft') {
+    resBtn = '◂';
+  } else if (event.key === 'ArrowRight') {
+    resBtn = '▸';
+  } else if (event.key === 'ArrowDown') {
+    resBtn = '▾';
+  } else if (event.key === 'Enter') {
+    resBtn = 'Enter';
+  } else if (event.key === 'Backspace') {
+    resBtn = 'Backspace';
+  } else if (event.key === 'Delete') {
+    resBtn = 'Del';
+  }
+
+  return resBtn;
+}
+
+function checkBtnSide(event) {
+  let side = 'left';
+  if (event.code.includes('Right')) {
+    side = 'right';
+  }
+
+  return side;
+}
+
+function switchLang() {
+  if (keyboard.shiftStatus === true && keyboard.optionStatus === true) {
+    document.querySelector('.keyboard').innerHTML = '';
+
+    if (!localStorage.getItem('userLang') || localStorage.getItem('userLang') === 'en') {
+      localStorage.setItem('userLang', 'ru');
+    } else {
+      localStorage.setItem('userLang', 'en');
+    }
+
+    keyboard.getKeyboard();
+  }
+
+}

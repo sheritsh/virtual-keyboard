@@ -75,6 +75,18 @@ textarea {
   flex-grow: 1;
 }
 
+.keyBtn:active {
+  scale: 0.8;
+  background-color: #e9333cb9;
+  transition: 0.2s;
+}
+
+.btn-active {
+  scale: 0.8;
+  background-color: #e9333cb9;
+  transition: 0.2s;
+}
+
 .btn-shift {
   padding: 0 25px;
 }
