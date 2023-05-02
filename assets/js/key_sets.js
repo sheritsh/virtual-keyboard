@@ -12,6 +12,10 @@ const specialBtns = [
   'Enter',
   'Backspace',
   'Delete',
+  'Ctrl',
+  'Option',
+  'Cmd',
+  'Del',
 ];
 
 export default specialBtns;
