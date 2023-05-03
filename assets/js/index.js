@@ -27,7 +27,7 @@ class KeyboardRender {
     this.keyboard.classList.add('keyboard');
     this.description = document.createElement('div');
     this.description.classList.add('description');
-    this.description.textContent = "The keyboard was created in the macOS Big Sur v11.6.6 environment. \nTo switch layout press 'option + shift'.";
+    this.description.textContent = "The keyboard was created in the macOS Big Sur v11.6.6 environment. \nTo switch layout press 'Ctrl + Option'.";
     this.description.style.whiteSpace = 'pre';
     this.footer = document.createElement('div');
     this.footer.classList.add('footer');
@@ -43,6 +43,7 @@ class KeyboardRender {
     // keys statuses
     this.shiftStatus = false;
     this.optionStatus = false;
+    this.ctrlStatus = false;
     this.isCaps = false;
     this.isRightShiftLight = false;
 
@@ -54,15 +55,10 @@ class KeyboardRender {
   getKeyboard() {
     const { keyboard } = this;
     const keyboardLayout = localStorage.getItem('userLang') === 'ru' ? keysRu : keysEn;
-    let tabMode = 0;
-    if (this.isCaps || this.shiftStatus) {
-      tabMode = 1;
-    }
     for (let i = 0; i < keyboardLayout.length; i += 1) {
       for (let j = 0; j < keyboardLayout[i].length; j += 1) {
         let keyValue = '';
         keyValue = typeof keyboardLayout[i][j] === 'object' ? keyboardLayout[i][j][Number(this.shiftStatus)] : keyboardLayout[i][j];
-        // console.log(this.isCaps);
         if ((this.isCaps || this.shiftStatus) && keyValue.match(/^[а-яa-z]/)) {
           keyValue = keyValue.toUpperCase();
         }
@@ -98,9 +94,6 @@ class KeyboardRender {
     event.preventDefault();
     const btnsCollection = document.querySelectorAll('.keyBtn');
     const eventBtn = recognizeBtn(event, btnsCollection);
-    console.log(eventBtn);
-    
-    // const currentBtn = event.target.closest('.keyBtn');
     let side = 'left';
     const sideDependent = ['Shift', 'Ctrl', 'Option', 'Cmd'];
     let curBtn = event.key;
@@ -113,9 +106,7 @@ class KeyboardRender {
     }
     if (event.type === 'click') {
       curBtn = event.target.closest('.keyBtn').textContent;
-      
       handleKeydown(curBtn, btnsCollection, side);
-      console.log(curBtn);
       if (!specialBtns.includes(curBtn)) {
         let bufStr = this.textarea.value.split('');
         const texpPointer = this.textarea.selectionEnd;
@@ -147,15 +138,9 @@ class KeyboardRender {
           refresh(side);
         }
       }
-
-      // if (this.textarea.value.length % 65 === 0) {
-      //   keyboard.textarea.value += '\n';
-      // }
-      // event.target.closest('.button').classList.add("btn-active");
     } else if (event.type === 'keyup') {
       handleKeyup(eventBtn, btnsCollection, side);
     }
-
     if (event.type === 'click' || event.type === 'keydown') {
       if (!event.repeat) {
         soundPlay();
@@ -163,6 +148,8 @@ class KeyboardRender {
     }
   }
 }
+
+/* GENERATING KEYBOARD ON PAGE */
 
 const keyboard = new KeyboardRender();
 keyboard.getKeyboard();
@@ -179,11 +166,15 @@ document.addEventListener('keyup', (event) => {
   keyboard.eventHandler(event);
 });
 
+/* END OF GENERATING KEYBOARD ON PAGE */
+
 function handleKeydown(curBtn, btnsCollection, side) {
   if (curBtn === 'Shift') {
     keyboard.shiftStatus = true;
   } else if (curBtn === 'Option') {
     keyboard.optionStatus = true;
+  } else if (curBtn === 'Ctrl') {
+    keyboard.ctrlStatus = true;
   }
   switchLang();
 
@@ -211,11 +202,11 @@ function handleKeydown(curBtn, btnsCollection, side) {
 
 function handleKeyup(curBtn, btnsCollection) {
   if (curBtn === 'Shift') {
-    // document.querySelector('.keyboard').innerHTML = '';
-    // keyboard.getKeyboard();
     keyboard.shiftStatus = false;
   } else if (curBtn === 'Option') {
     keyboard.optionStatus = false;
+  } else if (curBtn === 'Ctrl') {
+    keyboard.ctrlStatus = false;
   }
 
   for (const elem of btnsCollection) {
@@ -237,10 +228,6 @@ function soundPlay() {
   clickSound.src = 'assets/sounds/btn_click_sound.mp3';
   clickSound.play();
 }
-
-// function whichBtn(event) {
-//   if event.key
-// }
 
 function getSpecialBtn(event) {
   let resBtn = '';
@@ -286,7 +273,7 @@ function checkBtnSide(event) {
 }
 
 function switchLang() {
-  if (keyboard.shiftStatus === true && keyboard.optionStatus === true) {
+  if (keyboard.ctrlStatus === true && keyboard.optionStatus === true) {
     if (
       !localStorage.getItem('userLang') || localStorage.getItem('userLang') === 'en'
     ) {
@@ -294,7 +281,9 @@ function switchLang() {
     } else {
       localStorage.setItem('userLang', 'en');
     }
-    refresh();
+    setTimeout(() => {
+      refresh();
+    }, '200');
   }
 }
 
@@ -306,11 +295,11 @@ function refresh() {
 function specialBtnsToDo(curBtn) {
   if (curBtn === 'Tab') {
     let bufStr = keyboard.textarea.value.split('');
-        const texpPointer = keyboard.textarea.selectionEnd;
-        bufStr.splice(keyboard.textarea.selectionStart, 0, '    ');
-        bufStr = bufStr.join('');
-        keyboard.textarea.value = bufStr;
-        keyboard.textarea.selectionEnd = texpPointer + 4;
+    const texpPointer = keyboard.textarea.selectionEnd;
+    bufStr.splice(keyboard.textarea.selectionStart, 0, '    ');
+    bufStr = bufStr.join('');
+    keyboard.textarea.value = bufStr;
+    keyboard.textarea.selectionEnd = texpPointer + 4;
   } else if (curBtn === 'CapsLock') {
     if (keyboard.isCaps) {
       keyboard.isCaps = false;
@@ -382,22 +371,4 @@ function checkDoesItExist(event) {
 
 function getKbKey(kbCoords, btnsCollection) {
   return btnsCollection[kbCoords].textContent;
-}
-
-function arrowFix(curBtn) {
-  let res = ' ';
-
-  if (curBtn === '▴') {
-    res = 'ArrowUp';
-  } else if (curBtn === '▾') {
-    res = 'ArrowDown';
-  } else if (curBtn === '◂') {
-    res = 'ArrowLeft';
-  } else if (curBtn === '▸') {
-    res = 'ArrowRight';
-  } else {
-    res = curBtn;
-  }
-
-  return res;
 }
