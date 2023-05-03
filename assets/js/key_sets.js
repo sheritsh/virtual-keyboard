@@ -16,6 +16,10 @@ const specialBtns = [
   'Option',
   'Cmd',
   'Del',
+  '▴',
+  '◂',
+  '▾',
+  '▸',
 ];
 
 export default specialBtns;
