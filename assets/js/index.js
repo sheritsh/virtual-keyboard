@@ -5,6 +5,7 @@
 
 import keysEn from './en_layout.js';
 import specialBtns from './key_sets.js';
+import macKbLayout from './mac_keyboard.js';
 import keysRu from './ru_layout.js';
 
 class KeyboardRender {
@@ -60,7 +61,11 @@ class KeyboardRender {
     for (let i = 0; i < keyboardLayout.length; i += 1) {
       for (let j = 0; j < keyboardLayout[i].length; j += 1) {
         let keyValue = '';
-        keyValue = typeof keyboardLayout[i][j] === 'object' ? keyboardLayout[i][j][tabMode] : keyboardLayout[i][j];
+        keyValue = typeof keyboardLayout[i][j] === 'object' ? keyboardLayout[i][j][Number(this.shiftStatus)] : keyboardLayout[i][j];
+        // console.log(this.isCaps);
+        if ((this.isCaps || this.shiftStatus) && keyValue.match(/^[а-яa-z]/)) {
+          keyValue = keyValue.toUpperCase();
+        }
         const newKey = {};
         newKey.button = document.createElement('div');
         newKey.button.textContent = keyValue;
@@ -92,6 +97,9 @@ class KeyboardRender {
   eventHandler(event) {
     event.preventDefault();
     const btnsCollection = document.querySelectorAll('.keyBtn');
+    const eventBtn = recognizeBtn(event, btnsCollection);
+    console.log(eventBtn);
+    
     // const currentBtn = event.target.closest('.keyBtn');
     let side = 'left';
     const sideDependent = ['Shift', 'Ctrl', 'Option', 'Cmd'];
@@ -100,12 +108,14 @@ class KeyboardRender {
     if (specialBtns.includes(event.key)) {
       curBtn = getSpecialBtn(event);
     }
-    if (sideDependent.includes(curBtn)) {
+    if (sideDependent.includes(eventBtn)) {
       side = checkBtnSide(event);
     }
     if (event.type === 'click') {
       curBtn = event.target.closest('.keyBtn').textContent;
+      
       handleKeydown(curBtn, btnsCollection, side);
+      console.log(curBtn);
       if (!specialBtns.includes(curBtn)) {
         let bufStr = this.textarea.value.split('');
         const texpPointer = this.textarea.selectionEnd;
@@ -121,18 +131,19 @@ class KeyboardRender {
       }
 
       handleKeyup(curBtn, btnsCollection, side);
+      this.textarea.focus();
     } else if (event.type === 'keydown') {
-      handleKeydown(curBtn, btnsCollection, side);
+      handleKeydown(eventBtn, btnsCollection, side);
       if (!specialBtns.includes(forSpecial)) {
         let bufStr = keyboard.textarea.value.split('');
         const texpPointer = keyboard.textarea.selectionEnd;
-        bufStr.splice(keyboard.textarea.selectionStart, 0, curBtn);
+        bufStr.splice(keyboard.textarea.selectionStart, 0, eventBtn);
         bufStr = bufStr.join('');
         keyboard.textarea.value = bufStr;
         keyboard.textarea.selectionEnd = texpPointer + 1;
       } else {
-        specialBtnsToDo(curBtn);
-        if (curBtn === 'Shift') {
+        specialBtnsToDo(eventBtn);
+        if (eventBtn === 'Shift') {
           refresh(side);
         }
       }
@@ -142,7 +153,7 @@ class KeyboardRender {
       // }
       // event.target.closest('.button').classList.add("btn-active");
     } else if (event.type === 'keyup') {
-      handleKeyup(curBtn, btnsCollection, side);
+      handleKeyup(eventBtn, btnsCollection, side);
     }
 
     if (event.type === 'click' || event.type === 'keydown') {
@@ -294,7 +305,12 @@ function refresh() {
 
 function specialBtnsToDo(curBtn) {
   if (curBtn === 'Tab') {
-    keyboard.textarea.value += '    ';
+    let bufStr = keyboard.textarea.value.split('');
+        const texpPointer = keyboard.textarea.selectionEnd;
+        bufStr.splice(keyboard.textarea.selectionStart, 0, '    ');
+        bufStr = bufStr.join('');
+        keyboard.textarea.value = bufStr;
+        keyboard.textarea.selectionEnd = texpPointer + 4;
   } else if (curBtn === 'CapsLock') {
     if (keyboard.isCaps) {
       keyboard.isCaps = false;
@@ -338,4 +354,50 @@ function specialBtnsToDo(curBtn) {
     keyboard.textarea.value = bufStr;
     keyboard.textarea.selectionEnd = texpPointer;
   }
+}
+
+function recognizeBtn(event, btnsCollection) {
+  const kbCoords = checkDoesItExist(event);
+  if (kbCoords) {
+    const kbKey = getKbKey(kbCoords - 1, btnsCollection);
+    return kbKey;
+  }
+
+  return null;
+}
+
+function checkDoesItExist(event) {
+  let res = 0;
+  for (let i = 0; i < macKbLayout.length; i += 1) {
+    for (let j = 0; j < macKbLayout[i].length; j += 1) {
+      res += 1;
+      if (event.code === macKbLayout[i][j]) {
+        return res;
+      }
+    }
+  }
+
+  return false;
+}
+
+function getKbKey(kbCoords, btnsCollection) {
+  return btnsCollection[kbCoords].textContent;
+}
+
+function arrowFix(curBtn) {
+  let res = ' ';
+
+  if (curBtn === '▴') {
+    res = 'ArrowUp';
+  } else if (curBtn === '▾') {
+    res = 'ArrowDown';
+  } else if (curBtn === '◂') {
+    res = 'ArrowLeft';
+  } else if (curBtn === '▸') {
+    res = 'ArrowRight';
+  } else {
+    res = curBtn;
+  }
+
+  return res;
 }
