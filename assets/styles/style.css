@@ -31,7 +31,8 @@ body {
 }
 
 textarea {
-  width: 1025px;
+  width: 85vw;
+  max-width: 1025px;
   white-space: pre-wrap;
   border-radius: 5px;
   padding: 25px;
@@ -51,7 +52,8 @@ textarea {
   row-gap: 3px;
   column-gap: 5px;
   margin: 0 auto;
-  width: 1105px;
+  width: 85vw;
+  max-width: 1105px;
   flex-wrap: wrap;
 }
 
@@ -61,7 +63,7 @@ textarea {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 15px 20px;
+  padding: 1rem 1.2rem;
   min-height: 68px;
   box-sizing: border-box;
   color: #000;
